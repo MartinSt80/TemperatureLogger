@@ -1,0 +1,14 @@
+# email settings for Alert Emails
+mail_server = smtp.uni-konstanz.de
+mail_port = 587
+mail_user = bioimaging
+
+#contains password for <mail_user>
+mail_credentials = /home/.bioimagingSMTP
+mail_sender = bioimaging@uni-konstanz.de
+
+#name for "From" field
+mail_from = PI@BIC
+
+# comma separation for more recipients
+mail_recipients = martin.stoeckl@uni-konstanz.de
