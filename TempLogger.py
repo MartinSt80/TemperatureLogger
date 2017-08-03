@@ -12,11 +12,11 @@ import Shrink_DB, ErrorReporting, Options
 
 class TemperatureReading:
 
-	def __init__(self, temp, date_time, sec_time, id, name):
+	def __init__(self, temp, date_time, sec_time, sensor_id, name):
 		self.temperature = temp
 		self.time_as_string = date_time
 		self.offset_epoch_time = sec_time
-		self.sensor_ID = id
+		self.sensor_ID = sensor_id
 		self.sensor_name = name
 
 
@@ -46,7 +46,7 @@ def checkMount():
 			raise ErrorReporting.NetworkError('NAS', 'NAS does not respond to ping!')
 
 		# try to mount NAS
-		mount_response = os.system('mount -t cifs '+ OPTIONS.getValue('mount_source') + OPTIONS.getValue('save_dir') + ' -o credentials=' + OPTIONS.getValue('mount_credentials'))
+		mount_response = os.system('sudo mount -t cifs '+ OPTIONS.getValue('mount_source') + OPTIONS.getValue('save_dir') + ' -o credentials=' + OPTIONS.getValue('mount_credentials'))
 		if mount_response != 0:
 			raise ErrorReporting.NetworkError('NAS', 'NAS is available, but could not be mounted')
 
@@ -118,16 +118,16 @@ def plotTemperatures(data_file, current_time):
 
 	def formatTemperatureDifference(temp_diff):
 		if (temp_diff < 2):
-			text = 'less than $\pm$ 1'
+			text = 'less than 2'
 			stab_color = 'ForestGreen'
 		elif (temp_diff >= 2 and temp_diff < 4):
-			text = 'less than $\pm$ 2'
+			text = 'less than 4'
 			stab_color = 'OliveDrab'
 		elif (temp_diff >= 4 and temp_diff < 6):
-			text = 'less than $\pm$ 3'
+			text = 'less than 6'
 			stab_color = 'DarkOrange'
 		else:
-			text = 'more than $\pm$ 3'
+			text = 'more than 6'
 			stab_color = 'FireBrick'
 
 		return text, stab_color
@@ -137,7 +137,7 @@ def plotTemperatures(data_file, current_time):
 				xycoords='figure fraction',
 				horizontalalignment='left', verticalalignment='bottom',
 				fontsize=11)
-		if hours:
+		if not hours == []:
 			plt.annotate('Current temperature: {:.1f} $^\circ$C'.format(temps[-1] + avg_temp), xy=(0.87, 0.8),
 				xycoords='figure fraction',
 				horizontalalignment='right', verticalalignment='bottom',

@@ -78,10 +78,10 @@ def reportError(error):
 
 	if error.__class__.__name == 'TemperatureError':
 		if error.condition == 'limit':
-			msg = MIMEText('Sensor '+ error.id + ' measures a temperature of {:.1f} °C'.format(error.temp)+ ' in room '+ error.name +'!', 'plain', 'utf-8')
+			msg = MIMEText('Sensor ' + error.id + ' measures a temperature of {:.1f} °C'.format(error.temp) + ' in room ' + error.name + '!', 'plain', 'utf-8')
 		if error.condition == 'unstable':
-			msg = MIMEText('Sensor '+ error.id + ' measures a temperature fluctuation of more than {:.1f} °C'.format(error.temp)+ ' in room '+ error.name +'!', 'plain', 'utf-8')
-		msg['Subject'] = 'Temperature alarm: '+ error.name
+			msg = MIMEText('Sensor ' + error.id + ' measures a temperature fluctuation of more than {:.1f} °C'.format(error.temp) + ' in room ' + error.name + '!', 'plain', 'utf-8')
+		msg['Subject'] = 'Temperature alarm: ' + error.name
 
 	if error.__class__.__name == 'SensorError':
 		msg = MIMEText('Sensor '+ error.ID + ' in room ' + error.name + ' is not responding!')
