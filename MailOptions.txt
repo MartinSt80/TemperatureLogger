@@ -11,4 +11,5 @@ mail_sender = bioimaging@uni-konstanz.de
 mail_from = PI@BIC
 
 # comma separation for more recipients
-mail_recipients = martin.stoeckl@uni-konstanz.de
+alertmail_recipients = martin.stoeckl@uni-konstanz.de
+publicationmail_recipients = martin.stoeckl@uni-konstanz.de

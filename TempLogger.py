@@ -1,13 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from time import strftime, localtime, sleep, time
-import os, glob, time, ow, math
+import glob
+import math
+import os
+import time
+
 import matplotlib
+import ow
+
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
-import Shrink_DB, ErrorReporting, Options
+from lib import Options, Errors, Reporting, Shrink_DB
 
 
 class TemperatureReading:
@@ -19,38 +24,22 @@ class TemperatureReading:
 		self.sensor_ID = sensor_id
 		self.sensor_name = name
 
-
-# for each sensor create a tab limited entry
-def readSensorIDlist():
-	sensor_dict = {}
-	sensorlistfile = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'SensorList.txt')
-	with open(sensorlistfile, 'r') as f:
-		lines = f.readlines()
-	for l in lines:
-		l = l.rstrip('\n\t')
-		l = l.split('\t')
-		sensor_dict[l[0]] = l[1]
-	return sensor_dict
-
-
 def checkMount():
 	if not os.path.ismount(OPTIONS.getValue('save_dir')):
 		# Anyone out there? (ping DHCP server)
 		DHCP_response = os.system('ping -c 1 ' + OPTIONS.getValue('DHCP_IP'))
 		if DHCP_response != 0:
-			raise ErrorReporting.NetworkError('network', 'Not connected to DHCP')
+			raise Errors.NetworkError('network', 'Not connected to DHCP')
 
 		# is the NAS there? (ping NAS)
 		NAS_response = os.system('ping -c 1 ' + OPTIONS.getValue('mount_IP'))
 		if NAS_response != 0:
-			raise ErrorReporting.NetworkError('NAS', 'NAS does not respond to ping!')
+			raise Errors.NetworkError('NAS', 'NAS does not respond to ping!')
 
 		# try to mount NAS
 		mount_response = os.system('sudo mount -t cifs '+ OPTIONS.getValue('mount_source') + OPTIONS.getValue('save_dir') + ' -o credentials=' + OPTIONS.getValue('mount_credentials'))
 		if mount_response != 0:
-			raise ErrorReporting.NetworkError('NAS', 'NAS is available, but could not be mounted')
-
-
+			raise Errors.NetworkError('NAS', 'NAS is available, but could not be mounted')
 
 def readTemperatures():
 
@@ -70,27 +59,25 @@ def readTemperatures():
 		sensor_ID = str(sensor)[1:12]
 
 		try:
-			sensor_name = SENSOR_LIST[sensor_ID]
+			sensor_name = SENSOR_LIST.getValue(sensor_ID)
 		except KeyError:
 			sensor_name = 'Unknown sensor!'
 
 		temp = float(sensor.temperature)
-		date_time = strftime("%Y%m%d%H%M", localtime())
+		date_time = time.strftime("%Y%m%d%H%M", time.localtime())
 		sec_time = time.time() - float(OPTIONS.getValue('time_offset'))
 
 		sensor_data.append(TemperatureReading(temp, date_time, sec_time, sensor_ID, sensor_name))
 
 	return sensor_data
 
-
 def checkTemperatures(reading):
 	# a temperature readout of 85 indicates an internal sensor error
 	if reading.temperature == 85:
-		raise ErrorReporting.SensorError(reading.sensor_ID[3:], reading.sensor_name)
+		raise Errors.SensorError(reading.sensor_ID[3:], reading.sensor_name)
 	# Check if temperature is within acceptable range set in the options
 	if reading.temperature < int(OPTIONS.getValue('lower_limit')) or reading.temperature > int(OPTIONS.getValue('upper_limit')):
-		raise ErrorReporting.TemperatureError(reading.temperature, reading.sensor_ID[3:], reading.sensor_name, 'limit')
-
+		raise Errors.TemperatureError(reading.temperature, reading.sensor_ID[3:], reading.sensor_name, 'limit')
 
 def writeTemperatures(reading):
 
@@ -112,7 +99,6 @@ def writeTemperatures(reading):
 		else:
 			with open(save_file, 'w') as f:
 				f.write("%0.0f" % reading.offset_epoch_time + '\t' + reading.time_as_string + '\t' + "%0.2f" % reading.temperature + '\n')
-
 
 def plotTemperatures(data_file, current_time):
 
@@ -171,14 +157,14 @@ def plotTemperatures(data_file, current_time):
 
 		time_values = []
 		temp_values = []
-		for time, temp in zip(time_before_current, temperatures):
-			if time >= -3.:
-				time_values.append(time)
-				temp_values.append(temp)
+		for time_v, temp_v in zip(time_before_current, temperatures):
+			if time_v >= -3.:
+				time_values.append(time_v)
+				temp_values.append(temp_v)
 
 		sensor_id = data_file[-15:-4]
 		try:
-			sensor_name = SENSOR_LIST[sensor_id]
+			sensor_name = SENSOR_LIST.getValue(sensor_id)
 		except KeyError:
 			sensor_name = 'Unknown sensor!'
 
@@ -210,32 +196,32 @@ def plotTemperatures(data_file, current_time):
 		plt.tick_params(axis='x', labelsize=10)
 		plt.tick_params(axis='y', labelsize=10)
 		plt.ylabel('Temperature / $^\circ$C', fontsize=10)
-		plt.xlabel('Hours from '+ strftime("%d %b %Y %H:%M", localtime()), fontsize=10)
-		annotatePlot(time_values, temp_values, average_temperature, text_snippet, bar_color, sensor_name[:-1], zero_line)
+		plt.xlabel('Hours from ' + time.strftime("%d %b %Y %H:%M", time.localtime()), fontsize=10)
+		annotatePlot(time_values, temp_values, average_temperature, text_snippet, bar_color, sensor_name, zero_line)
 		plt.savefig(OPTIONS.getValue('save_dir') + 'Plots/' + sensor_id + '.png')
 		plt.savefig(OPTIONS.getValue('apache_plot_dir') + sensor_id + '.png')
 		plt.close(1)
 
 		if temperature_difference >= 6:
-			raise ErrorReporting.TemperatureError(temperature_difference, sensor_id, sensor_name, 'unstable')
+			raise Errors.TemperatureError(temperature_difference, sensor_id, sensor_name, 'unstable')
 
 
 OPTIONS = Options.OptionReader('TemploggerOptions.txt')
-SENSOR_LIST = readSensorIDlist()
+SENSOR_LIST = Options.OptionReader('SensorList.txt')
 
 sensor_readings = readTemperatures()
 
 for reading in sensor_readings:
 	try:
 		checkTemperatures(reading)
-	except (ErrorReporting.SensorError, ErrorReporting.TemperatureError) as e:
-		ErrorReporting.reportError(e)
+	except (Errors.SensorError, Errors.TemperatureError) as e:
+		Reporting.reportError(e)
 
 try:
 	checkMount()
-except ErrorReporting.NetworkError as e:
+except Errors.NetworkError as e:
 	if e.entity == "BIC-NAS":
-		ErrorReporting.reportError(e)
+		Reporting.reportError(e)
 	raise e
 else:
 	for reading in sensor_readings:
@@ -246,8 +232,8 @@ else:
 	for file_name in file_list:
 		try:
 			plotTemperatures(file_name, time.time())
-		except ErrorReporting.TemperatureError as e:
-			ErrorReporting.reportError(e)
+		except Errors.TemperatureError as e:
+			Reporting.reportError(e)
 
 	# every week make a backup and run Shrink_DB.py to form averages in the DB
 	last_backup_taken = os.path.join(OPTIONS.getValue('save_dir'), 'Backup', 'last_backup.txt')

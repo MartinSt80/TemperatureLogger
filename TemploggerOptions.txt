@@ -1,7 +1,7 @@
 # network options
 sensor_port = 4304
 save_dir = /mnt/BIC-NAS/
-apache_plot_dir = /var/www/html/Plots/
+apache_plot_dir = /var/www/html/bic-templogger/plots/
 DHCP_IP = 134.34.3.7
 mount_IP = 134.34.129.145
 mount_source = //134.34.129.145/temperatureLog/
