@@ -1,10 +1,11 @@
 # network options
 sensor_port = 4304
-save_dir = /mnt/BIC-NAS/
+save_dir = /mnt/BIC-NAS/Facility/temperature_logger/
+mount_dir = /mnt/BIC-NAS/
 apache_plot_dir = /var/www/html/bic-templogger/plots/
 DHCP_IP = 134.34.3.7
-mount_IP = 134.34.129.145
-mount_source = //134.34.129.145/temperatureLog/
+mount_IP = 134.34.129.177
+mount_source = //134.34.129.177/temperatureLog/
 mount_credentials = /home/.bicnascredentials
 
 # time offset subtracted from epoch seconds, can be chosen arbitrarily,
@@ -12,5 +13,5 @@ mount_credentials = /home/.bicnascredentials
 time_offset = 1427881561
 
 # temperature limits when an email alert is triggered
-lower_limit = 14
+lower_limit = 12
 upper_limit = 30

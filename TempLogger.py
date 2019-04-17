@@ -25,7 +25,7 @@ class TemperatureReading:
 		self.sensor_name = name
 
 def checkMount():
-	if not os.path.ismount(OPTIONS.getValue('save_dir')):
+	if not os.path.ismount(OPTIONS.getValue('mount_dir')):
 		# Anyone out there? (ping DHCP server)
 		DHCP_response = os.system('ping -c 1 ' + OPTIONS.getValue('DHCP_IP'))
 		if DHCP_response != 0:
