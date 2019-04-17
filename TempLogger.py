@@ -37,7 +37,7 @@ def checkMount():
 			raise Errors.NetworkError('NAS', 'NAS does not respond to ping!')
 
 		# try to mount NAS
-		mount_response = os.system('sudo mount -t cifs '+ OPTIONS.getValue('mount_source') + OPTIONS.getValue('save_dir') + ' -o credentials=' + OPTIONS.getValue('mount_credentials'))
+		mount_response = os.system('sudo mount -t cifs ' + OPTIONS.getValue('mount_source') + ' ' + OPTIONS.getValue('mount_dir') + ' -o credentials=' + OPTIONS.getValue('mount_credentials'))
 		if mount_response != 0:
 			raise Errors.NetworkError('NAS', 'NAS is available, but could not be mounted')
 

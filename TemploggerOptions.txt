@@ -5,7 +5,7 @@ mount_dir = /mnt/BIC-NAS/
 apache_plot_dir = /var/www/html/bic-templogger/plots/
 DHCP_IP = 134.34.3.7
 mount_IP = 134.34.129.177
-mount_source = //134.34.129.177/temperatureLog/
+mount_source = //134.34.129.177/Bic/
 mount_credentials = /home/.bicnascredentials
 
 # time offset subtracted from epoch seconds, can be chosen arbitrarily,
